@@ -29,6 +29,9 @@ class User extends Authenticatable
         'status',
         'password',
         'credit_score',
+        'bank_name',
+        'account_number',
+        'ifsc_code',
     ];
 
     public function loans()
@@ -59,6 +62,22 @@ class User extends Authenticatable
     public function employeeDocuments()
     {
         return $this->hasMany(EmployeeDocument::class);
+    }
+
+    // Accessors for bank details to fallback to employeeDetail
+    public function getBankNameAttribute($value)
+    {
+        return $value ?: optional($this->employeeDetail)->bank_name;
+    }
+
+    public function getAccountNumberAttribute($value)
+    {
+        return $value ?: optional($this->employeeDetail)->account_number;
+    }
+
+    public function getIfscCodeAttribute($value)
+    {
+        return $value ?: optional($this->employeeDetail)->ifsc_code;
     }
 
     /**

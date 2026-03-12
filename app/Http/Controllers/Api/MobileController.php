@@ -259,8 +259,14 @@ class MobileController extends Controller
             return response()->json(['error' => 'Authentication session invalid'], 401);
         }
 
-        if ($user->role === 'PARTNER') {
+        if ($user->role === 'PARTNER' || $user->role === 'EMPLOYEE') {
             $user->load('employeeDetail');
+            
+            if ($user->employeeDetail) {
+                if (!$user->bank_name) $user->bank_name = $user->employeeDetail->bank_name;
+                if (!$user->account_number) $user->account_number = $user->employeeDetail->account_number;
+                if (!$user->ifsc_code) $user->ifsc_code = $user->employeeDetail->ifsc_code;
+            }
         }
 
         // Add aliases for frontend compatibility
@@ -316,12 +322,25 @@ class MobileController extends Controller
         }
         if ($request->has('address')) {
             $user->location = ['address' => $request->address];
+        }
             
-            // Sync to employee_details if partner
-            if ($user->role === 'PARTNER') {
-                DB::table('employee_details')
-                    ->where('user_id', $user->id)
-                    ->update(['address' => $request->address, 'updated_at' => now()]);
+        if ($request->has('bank_name')) $user->bank_name = $request->bank_name;
+        if ($request->has('account_number')) $user->account_number = $request->account_number;
+        if ($request->has('ifsc_code')) $user->ifsc_code = $request->ifsc_code;
+
+        // Sync to employee_details if partner or employee
+        if ($user->role === 'PARTNER' || $user->role === 'EMPLOYEE') {
+            $updateData = ['updated_at' => now()];
+            if ($request->has('address')) $updateData['address'] = $request->address;
+            if ($request->has('bank_name')) $updateData['bank_name'] = $request->bank_name;
+            if ($request->has('account_number')) $updateData['account_number'] = $request->account_number;
+            if ($request->has('ifsc_code')) $updateData['ifsc_code'] = $request->ifsc_code;
+
+            if (!empty($updateData) && count($updateData) > 1) { // more than just updated_at
+                DB::table('employee_details')->updateOrInsert(
+                    ['user_id' => $user->id],
+                    $updateData
+                );
             }
         }
 

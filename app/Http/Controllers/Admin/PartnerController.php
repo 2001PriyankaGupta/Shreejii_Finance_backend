@@ -43,4 +43,5 @@ class PartnerController extends Controller
         $partner->delete();
         return back()->with('success', 'Partner deleted successfully.');
     }
+
 }

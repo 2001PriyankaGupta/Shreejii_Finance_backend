@@ -9,6 +9,8 @@ use App\Http\Controllers\Api\PartnerAuthController;
 
 use App\Http\Controllers\Api\AdminPartnerController;
 use App\Http\Controllers\Api\InquiryController;
+use App\Http\Controllers\Api\MessageController;
+use App\Http\Controllers\Api\WalletController;
 
 Route::get('test', function() {
     return response()->json(['message' => 'API is working']);
@@ -37,8 +39,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/updateProfile', [MobileController::class, 'updateProfile']);
         Route::post('/profile/image', [MobileController::class, 'updateProfileImage']);
         Route::get('/notifications', [MobileController::class, 'getNotifications']);
-        Route::get('/messages', [\App\Http\Controllers\Api\MessageController::class, 'getMessages']);
-        Route::post('/messages', [\App\Http\Controllers\Api\MessageController::class, 'sendMessage']);
+        Route::get('/messages', [MessageController::class, 'getMessages']);
+        Route::post('/messages', [MessageController::class, 'sendMessage']);
     });
 
     Route::post('/partner/profile', [PartnerAuthController::class, 'createProfile']);
@@ -60,5 +62,9 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::get('/tasks', [MobileController::class, 'getTasks']);
-    Route::get('/wallet', [MobileController::class, 'getWallet']);
+    
+    Route::prefix('wallet')->group(function () {
+        Route::get('/', [WalletController::class, 'index']);
+        Route::post('/withdraw', [WalletController::class, 'withdraw']);
+    });
 });

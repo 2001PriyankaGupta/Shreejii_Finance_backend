@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\PartnerController;
 use App\Http\Controllers\Admin\InquiryController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\MessageController;
+use App\Http\Controllers\Admin\WalletController;
 
 Route::resource('employees', EmployeeController::class);
 Route::post('employees/{employee}/upload-document', [EmployeeController::class, 'uploadDocument'])->name('employees.upload-document');
@@ -66,3 +67,7 @@ Route::post('elite-protocol/{id}/status', function($id, \Illuminate\Http\Request
 
     return back()->with('success', 'Status updated successfully.');
 })->name('elite.update-status');
+
+// Wallet Management
+Route::get('wallet', [WalletController::class, 'index'])->name('wallet.index');
+Route::post('wallet/{id}/status', [WalletController::class, 'updateStatus'])->name('wallet.updateStatus');
