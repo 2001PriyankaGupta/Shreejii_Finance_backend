@@ -25,6 +25,8 @@ class Lead extends Model
         'rc_documents',
         'status',
         'loan_amount', // Keeping for backward compatibility if needed
+        'disbursed_amount',
+        'tenure_months',
     ];
 
     protected $casts = [
@@ -38,5 +40,10 @@ class Lead extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function walletTransactions()
+    {
+        return $this->hasMany(WalletTransaction::class, 'description', 'id'); // Using lead ID in description for simple link
     }
 }

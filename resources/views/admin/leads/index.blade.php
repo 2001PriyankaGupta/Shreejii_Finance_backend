@@ -214,15 +214,24 @@
             <div class="mb-6 px-4">
                 <div class="flex flex-wrap items-end justify-between gap-6 border-b border-slate-50">
                     <form action="{{ route('admin.leads.index') }}" method="GET" class="flex flex-wrap items-end gap-5 flex-1">
-                        <div style="width: 262px;"> {{-- Reduced width for Employee Filter --}}
+                        <div style="width: 280px;"> {{-- Balanced width --}}
                             <label class="block text-[10px] font-black uppercase tracking-widest text-[#1e293b] mb-2 ml-4">Agent Node</label>
-                            <select name="employee_id" class="w-full bg-white border border-gray-200 rounded-2xl py-3 px-5 focus:ring-2 focus:ring-[#0346cbff] transition-all font-bold text-gray-800 shadow-sm appearance-none cursor-pointer">
-                                <option value="">All Employees</option>
-                                @foreach($employees as $emp)
-                                    <option value="{{ $emp->id }}" {{ request('employee_id') == $emp->id ? 'selected' : '' }}>
-                                        {{ $emp->name }}
-                                    </option>
-                                @endforeach
+                            <select name="user_id" class="w-full bg-white border border-gray-200 rounded-2xl py-3 px-5 focus:ring-2 focus:ring-[#0346cbff] transition-all font-bold text-gray-800 shadow-sm appearance-none cursor-pointer">
+                                <option value="">All Agents (Emp/Partner)</option>
+                                <optgroup label="Employees">
+                                    @foreach($employees as $emp)
+                                        <option value="{{ $emp->id }}" {{ request('user_id') == $emp->id || request('employee_id') == $emp->id ? 'selected' : '' }}>
+                                            {{ $emp->name }}
+                                        </option>
+                                    @endforeach
+                                </optgroup>
+                                <optgroup label="Partners">
+                                    @foreach($partners as $partner)
+                                        <option value="{{ $partner->id }}" {{ request('user_id') == $partner->id ? 'selected' : '' }}>
+                                            {{ $partner->name }}
+                                        </option>
+                                    @endforeach
+                                </optgroup>
                             </select>
                         </div>
                         <div style="width: 262px;"> {{-- Reduced width for Status Filter --}}
@@ -302,7 +311,10 @@
                                         <div class="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[8px] font-black text-slate-400 border border-slate-200">
                                             {{ strtoupper($lead->user->name[0] ?? '?') }}
                                         </div>
-                                        <span class="font-bold text-gray-900 text-[11px]">{{ $lead->user->name ?? 'System' }}</span>
+                                        <div>
+                                            <p class="font-bold text-gray-900 text-[11px] leading-tight mb-0.5">{{ $lead->user->name ?? 'System' }}</p>
+                                            <p class="text-[7px] font-black {{ ($lead->user->role ?? '') == 'PARTNER' ? 'text-emerald-500' : 'text-slate-400' }} uppercase tracking-widest">{{ $lead->user->role ?? 'ADMIN' }}</p>
+                                        </div>
                                     </div>
                                 </td>
                                 <td>

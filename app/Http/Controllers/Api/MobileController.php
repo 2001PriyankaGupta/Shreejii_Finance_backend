@@ -288,6 +288,43 @@ class MobileController extends Controller
 
         $user->address = $displayAddress;
         
+        // --- DYNAMIC PERFORMANCE METRICS ---
+        $totalLeads = Lead::where('user_id', $user->id)->count();
+        $approvedLeads = Lead::where('user_id', $user->id)->where('status', 'APPROVED')->count();
+        $conversionRate = ($totalLeads > 0) ? round(($approvedLeads / $totalLeads) * 100) : 0;
+        
+        $user->performance = [
+            'total_leads' => $totalLeads,
+            'approved_leads' => $approvedLeads,
+            'conversion_rate' => $conversionRate . '%',
+            'efficiency' => ($conversionRate >= 70) ? 'Elite' : (($conversionRate >= 30) ? 'Pro' : 'Standard')
+        ];
+
+        // --- DYNAMIC COMPLIANCE STATUS ---
+        $isVerified = ($user->status === 'ACTIVE' || $user->status === '1' || $user->status === 'APPROVED');
+        $detail = $user->employeeDetail;
+        
+        $user->compliance = [
+            'aadhaar' => [
+                'status' => ($detail && $detail->aadhaar_front && $isVerified) ? 'Verified' : (($detail && $detail->aadhaar_front) ? 'Pending' : 'Not Uploaded'),
+                'color' => ($detail && $detail->aadhaar_front && $isVerified) ? '#10B981' : '#F59E0B'
+            ],
+            'aadhaar_front' => [
+                'status' => ($detail && $detail->aadhaar_front) ? ($isVerified ? 'Verified' : 'Pending') : 'Not Uploaded',
+            ],
+            'aadhaar_back' => [
+                'status' => ($detail && $detail->aadhaar_back) ? ($isVerified ? 'Verified' : 'Pending') : 'Not Uploaded',
+            ],
+            'pan' => [
+                'status' => ($detail && $detail->pan_identity && $isVerified) ? 'Verified' : (($detail && $detail->pan_identity) ? 'Pending' : 'Not Uploaded'),
+                'color' => ($detail && $detail->pan_identity && $isVerified) ? '#10B981' : '#F59E0B'
+            ],
+            'bank' => [
+                'status' => ($user->account_number && $isVerified) ? 'Verified' : (($user->account_number) ? 'Pending' : 'Not Linked'),
+                'color' => ($user->account_number && $isVerified) ? '#10B981' : '#F59E0B'
+            ]
+        ];
+
         // Ensure avatar_url is a full URL if it's just a path
         if ($user->avatar_url && !str_starts_with($user->avatar_url, 'http')) {
             $user->avatar_url = asset('storage/' . $user->avatar_url);
@@ -613,6 +650,62 @@ class MobileController extends Controller
     {
         return response()->json([
             'settings' => AppSetting::all()->pluck('value', 'key')
+        ]);
+    }
+
+    public function uploadDocument(Request $request)
+    {
+        $user = Auth::user();
+        Log::info('Document upload attempt by User ID: ' . ($user->id ?? 'Unknown'));
+        Log::info('Upload Request Data:', $request->except('file'));
+
+        $validator = Validator::make($request->all(), [
+            'type' => 'required|string', // AADHAAR_FRONT, AADHAAR_BACK, PAN, BANK_PROOF, etc.
+            'file' => 'required|file|mimes:jpeg,png,jpg,pdf|max:10240',
+            'document_number' => 'nullable|string'
+        ]);
+
+        if ($validator->fails()) {
+            Log::warning('Document validation failed:', $validator->errors()->toArray());
+            return response()->json(['error' => $validator->errors()->first()], 422);
+        }
+
+        $type = strtoupper($request->type);
+        $file = $request->file('file');
+        $path = $file->store('employee_documents/' . $user->id, 'public');
+
+        // 1. Log to employee_documents table (Audit trail)
+        \App\Models\EmployeeDocument::create([
+            'user_id' => $user->id,
+            'type' => $type,
+            'document_number' => $request->document_number,
+            'file_path' => $path
+        ]);
+
+        // 2. Sync to employee_details table if it's a primary document
+        if ($user->role === 'PARTNER' || $user->role === 'EMPLOYEE') {
+            $columnMapping = [
+                'AADHAAR_FRONT' => 'aadhaar_front',
+                'AADHAAR_BACK' => 'aadhaar_back',
+                'PAN' => 'pan_identity',
+                'BANK_PROOF' => 'banking_proof',
+                'BUSINESS_IDENTITY' => 'business_identity'
+            ];
+
+            if (isset($columnMapping[$type])) {
+                DB::table('employee_details')->updateOrInsert(
+                    ['user_id' => $user->id],
+                    [
+                        $columnMapping[$type] => $path,
+                        'updated_at' => now()
+                    ]
+                );
+            }
+        }
+
+        return response()->json([
+            'message' => 'Document uploaded successfully',
+            'path' => asset('storage/' . $path)
         ]);
     }
 }

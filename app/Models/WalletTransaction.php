@@ -12,6 +12,9 @@ class WalletTransaction extends Model
         'amount',
         'type',
         'description',
+        'status',
+        'payout_link_id',
+        'payout_link_url',
     ];
 
     public function user()

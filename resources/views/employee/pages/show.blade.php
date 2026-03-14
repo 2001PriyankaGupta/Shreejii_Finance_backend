@@ -3,16 +3,57 @@
     <div class="py-6 bg-[#E2E8F0] min-h-screen" x-data="{ openModal: false, selectedFileName: '' }">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
-            <!-- Header with Back Button -->
-            <div class="flex justify-between items-center mb-10">
+            <!-- Header with Back Button and Verification Status -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-4">
                 <div>
-                    <h3 class="text-3xl font-black text-slate-800 tracking-tight">Employee Details</h3>
+                    <h3 class="text-3xl font-black text-slate-800 tracking-tight flex items-center gap-4">
+                        Employee Details
+                        @if($employee->status === 'APPROVED')
+                            <span class="px-4 py-1.5 rounded-xl text-[10px] font-black tracking-widest uppercase bg-emerald-100 text-emerald-600 border border-emerald-200 shadow-sm leading-none">Verified</span>
+                        @elseif($employee->status === 'REJECTED')
+                            <span class="px-4 py-1.5 rounded-xl text-[10px] font-black tracking-widest uppercase bg-rose-100 text-rose-600 border border-rose-200 shadow-sm leading-none">Rejected</span>
+                        @else
+                            <span class="px-4 py-1.5 rounded-xl text-[10px] font-black tracking-widest uppercase bg-amber-100 text-amber-600 border border-amber-200 shadow-sm leading-none animate-pulse">Pending Review</span>
+                        @endif
+                    </h3>
                     <p class="text-slate-500 font-medium mt-1">Detailed overview of employee history and records.</p>
                 </div>
-                <a href="{{ route('admin.employees.index') }}" class="inline-flex items-center px-6 py-3 bg-white text-slate-600 font-black rounded-2xl transition-all shadow-sm hover:bg-slate-50 border border-slate-200 group">
-                    <svg class="w-5 h-5 mr-2 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                    Back to List
-                </a>
+
+                <div class="flex items-center gap-3">
+                    <div class="relative" x-data="{ open: false }">
+                        <button @click="open = !open" class="inline-flex items-center px-6 py-3 bg-white text-slate-900 font-black rounded-2xl transition-all shadow-sm hover:bg-slate-50 border border-slate-200 group">
+                            <i class="fa-solid fa-shield-halved mr-2 text-[#0346cbff]"></i>
+                            Verify Identity
+                            <i class="fa-solid fa-chevron-down text-[10px] ml-3 transition-transform" :class="{'rotate-180': open}"></i>
+                        </button>
+                        
+                        <div x-show="open" @click.away="open = false" style="display: none;" class="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-100 p-2 z-50">
+                            <form action="{{ route('admin.employees.approve', $employee->id) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="w-full text-left px-4 py-3 text-xs font-black uppercase tracking-widest text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all flex items-center">
+                                    <i class="fa-solid fa-check-double w-6"></i> Approve Identity
+                                </button>
+                            </form>
+                            <form action="{{ route('admin.employees.reject', $employee->id) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="w-full text-left px-4 py-3 text-xs font-black uppercase tracking-widest text-rose-600 hover:bg-rose-50 rounded-xl transition-all flex items-center">
+                                    <i class="fa-solid fa-user-slash w-6"></i> Reject Profile
+                                </button>
+                            </form>
+                            <form action="{{ route('admin.employees.pending', $employee->id) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="w-full text-left px-4 py-3 text-xs font-black uppercase tracking-widest text-amber-600 hover:bg-amber-50 rounded-xl transition-all flex items-center border-t border-slate-50 mt-1 pt-2">
+                                    <i class="fa-solid fa-clock-rotate-left w-6"></i> Set to Pending
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <a href="{{ route('admin.employees.index') }}" class="inline-flex items-center px-6 py-3 bg-slate-800 text-white font-black rounded-2xl transition-all shadow-lg hover:bg-slate-900 border border-slate-700 group">
+                        <svg class="w-5 h-5 mr-2 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                        Back
+                    </a>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -102,6 +143,11 @@
                                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Monthly Salary</p>
                                 <p class="text-2xl font-black text-[#0346cbff]">₹ {{ number_format($employee->employeeDetail->salary ?? 0, 0) }}</p>
                             </div>
+                            <div class="p-6 rounded-3xl bg-indigo-50 border border-indigo-100 shadow-sm shadow-indigo-100">
+                                <p class="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-2">Total Commission Earned</p>
+                                <p class="text-2xl font-black text-indigo-700">₹ {{ number_format(\App\Models\WalletTransaction::where('user_id', $employee->id)->where('type', 'CREDIT')->sum('amount'), 2) }}</p>
+                                <p class="text-[8px] font-bold text-indigo-400 mt-1 uppercase tracking-widest">Lifetime Yield</p>
+                            </div>
                             <div class="p-6 rounded-3xl bg-slate-50/50 border border-slate-100">
                                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Primary Bank</p>
                                 <p class="text-lg font-black text-slate-800">{{ $employee->employeeDetail->bank_name ?? 'NOT REGISTERED' }}</p>
@@ -110,10 +156,46 @@
                                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Account Number</p>
                                 <p class="text-lg font-black text-slate-800 tracking-wider">{{ $employee->employeeDetail->account_number ?? 'XXXX XXXX XXXX' }}</p>
                             </div>
-                            <div class="p-6 rounded-3xl bg-slate-50/50 border border-slate-100">
-                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">IFSC CODE</p>
-                                <p class="text-lg font-black text-slate-800 italic uppercase">{{ $employee->employeeDetail->ifsc_code ?? 'N/A' }}</p>
-                            </div>
+                        </div>
+                    </div>
+
+                    <!-- NEW: Commission History Section -->
+                    <div class="bg-indigo-900 rounded-[2.5rem] shadow-xl border border-indigo-700 p-8 text-white">
+                        <h4 class="text-xl font-black uppercase tracking-tight mb-6 flex items-center gap-3">
+                            <i class="fa-solid fa-wallet text-indigo-400"></i> Financial Yield Log
+                        </h4>
+                        @php 
+                            $commissions = \App\Models\WalletTransaction::where('user_id', $employee->id)
+                                ->where('type', 'CREDIT')
+                                ->latest()
+                                ->limit(5)
+                                ->get();
+                        @endphp
+                        <div class="space-y-4">
+                            @forelse($commissions as $tx)
+                                <div class="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center justify-between group hover:bg-white/10 transition-all">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center text-indigo-300">
+                                            <i class="fa-solid fa-arrow-trend-up"></i>
+                                        </div>
+                                        <div>
+                                            @php 
+                                                $lead = \App\Models\Lead::find($tx->description);
+                                            @endphp
+                                            <p class="text-[10px] font-black uppercase tracking-widest text-indigo-300">Conversion Bonus</p>
+                                            <p class="font-bold text-sm">Lead #{{ $tx->description }} - {{ $lead ? $lead->customer_name : 'N/A' }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-lg font-black text-emerald-400">+₹{{ number_format($tx->amount, 2) }}</p>
+                                        <p class="text-[8px] font-bold text-white/40 uppercase tracking-widest">{{ $tx->created_at->format('d M, Y') }}</p>
+                                    </div>
+                                </div>
+                            @empty
+                                <div class="py-10 text-center opacity-30">
+                                    <p class="font-black uppercase tracking-[3px] text-xs">No Financial Transmissions Detected</p>
+                                </div>
+                            @endforelse
                         </div>
                     </div>
 

@@ -30,6 +30,7 @@ Route::prefix('auth')->group(function () {
 
 Route::get('/settings', [MobileController::class, 'getSettings']);
 Route::post('/inquiry', [InquiryController::class, 'store']);
+Route::get('/wallet/statement', [WalletController::class, 'downloadStatement']);
 
 // Protected Routes
 Route::middleware('auth:sanctum')->group(function () {
@@ -38,12 +39,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/profile', [MobileController::class, 'createProfile']);
         Route::post('/updateProfile', [MobileController::class, 'updateProfile']);
         Route::post('/profile/image', [MobileController::class, 'updateProfileImage']);
+        Route::post('/documents/upload', [MobileController::class, 'uploadDocument']);
         Route::get('/notifications', [MobileController::class, 'getNotifications']);
         Route::get('/messages', [MessageController::class, 'getMessages']);
         Route::post('/messages', [MessageController::class, 'sendMessage']);
     });
 
     Route::post('/partner/profile', [PartnerAuthController::class, 'createProfile']);
+    Route::post('/partner/reset', [PartnerAuthController::class, 'resetRegistration']);
 
     Route::prefix('loans')->group(function () {
         Route::get('/', [MobileController::class, 'getMyLoans']);

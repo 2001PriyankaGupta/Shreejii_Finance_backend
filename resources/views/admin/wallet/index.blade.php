@@ -78,6 +78,11 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                                         @if($tx->status === 'PENDING')
                                             <div class="flex items-center justify-end gap-2">
+                                                @if($tx->payout_link_url)
+                                                    <a href="{{ $tx->payout_link_url }}" target="_blank" class="px-3 py-1.5 text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors border border-indigo-100">
+                                                        GATEWAY LINK
+                                                    </a>
+                                                @endif
                                                 <form action="{{ route('admin.wallet.updateStatus', $tx->id) }}" method="POST" class="inline">
                                                     @csrf
                                                     <input type="hidden" name="status" value="COMPLETED">

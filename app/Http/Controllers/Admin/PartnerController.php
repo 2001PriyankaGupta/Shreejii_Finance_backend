@@ -10,7 +10,11 @@ class PartnerController extends Controller
 {
     public function index()
     {
-        $partners = User::where('role', 'PARTNER')->with('employeeDetail')->latest()->get();
+        $partners = User::where('role', 'PARTNER')
+            ->where('status', '!=', 'SIGNUP_INCOMPLETE')
+            ->with('employeeDetail')
+            ->latest()
+            ->get();
         return view('partner.pages.index', compact('partners'));
     }
 

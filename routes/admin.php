@@ -11,10 +11,14 @@ use App\Http\Controllers\Admin\MessageController;
 use App\Http\Controllers\Admin\WalletController;
 
 Route::resource('employees', EmployeeController::class);
+Route::post('employees/{employee}/approve', [EmployeeController::class, 'approve'])->name('employees.approve');
+Route::post('employees/{employee}/reject', [EmployeeController::class, 'reject'])->name('employees.reject');
+Route::post('employees/{employee}/pending', [EmployeeController::class, 'pending'])->name('employees.pending');
 Route::post('employees/{employee}/upload-document', [EmployeeController::class, 'uploadDocument'])->name('employees.upload-document');
 Route::delete('employee-documents/{document}', [EmployeeController::class, 'deleteDocument'])->name('employees.delete-document');
 
 // Leads Management
+Route::get('leads/disbursements', [LeadController::class, 'disbursements'])->name('leads.disbursements');
 Route::get('leads', [LeadController::class, 'index'])->name('leads.index');
 Route::get('leads/{lead}', [LeadController::class, 'show'])->name('leads.show');
 Route::get('leads/{lead}/edit', [LeadController::class, 'edit'])->name('leads.edit');

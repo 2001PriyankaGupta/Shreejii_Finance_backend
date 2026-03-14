@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    'razorpay' => [
+        'key' => env('RAZORPAY_KEY'),
+        'secret' => env('RAZORPAY_SECRET'),
+        'payout_account' => env('RAZORPAYX_ACCOUNT_NUMBER', '7878780080316316'),
+    ],
+
 ];

@@ -30,16 +30,17 @@ class WalletController extends Controller
         if ($request->status === 'COMPLETED') {
             try {
                 $user = $transaction->user;
-                $key = env('RAZORPAY_KEY');
-                $secret = env('RAZORPAY_SECRET');
+                $key = config('services.razorpay.key');
+                $secret = config('services.razorpay.secret');
+                $payoutAccount = config('services.razorpay.payout_account');
                 
                 // User's Bank Details are now loaded automatically via the model mutators we created.
                 $bankName = $user->bank_name;
                 $accountNumber = $user->account_number;
                 $ifsc = $user->ifsc_code;
                 
-                if (!$bankName || !$accountNumber || !$ifsc) {
-                    throw new \Exception("User missing bank details. Transaction cannot be requested for automated payout.");
+                if (!$key || !$secret) {
+                    throw new \Exception("Razorpay credentials (Key/Secret) are missing in system configuration.");
                 }
                 
                 // Step 1: Create Contact in RazorpayX
@@ -80,7 +81,7 @@ class WalletController extends Controller
                 $payoutRes = \Illuminate\Support\Facades\Http::withBasicAuth($key, $secret)
                     ->post('https://api.razorpay.com/v1/payouts', [
                         // Replace with your real RazorpayX virtual account generated from dashboard
-                        'account_number' => env('RAZORPAYX_ACCOUNT_NUMBER', '7878780080316316'), 
+                        'account_number' => $payoutAccount, 
                         'fund_account_id' => $fundAccountId,
                         'amount' => $transaction->amount * 100, // Amount in paise
                         'currency' => 'INR',

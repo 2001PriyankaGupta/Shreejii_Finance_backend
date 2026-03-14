@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\WalletTransaction;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class WalletController extends Controller
 {
@@ -39,6 +40,33 @@ class WalletController extends Controller
         ]);
     }
 
+    public function downloadStatement(Request $request)
+    {
+        // Simple manual token check for public URL access from mobile Linking
+        $token = $request->query('token');
+        if (!$token) return response()->json(['message' => 'Unauthorized'], 401);
+
+        $tokenRecord = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
+        if (!$tokenRecord) return response()->json(['message' => 'Invalid Token'], 401);
+
+        $user = $tokenRecord->tokenable;
+        
+        $transactions = WalletTransaction::where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $startDate = $transactions->isEmpty() ? now() : $transactions->last()->created_at;
+        $endDate = $transactions->isEmpty() ? now() : $transactions->first()->created_at;
+
+        $totalCredit = $transactions->where('type', 'CREDIT')->where('status', 'COMPLETED')->sum('amount');
+        $totalDebit = $transactions->where('type', 'DEBIT')->where('status', '!=', 'FAILED')->sum('amount');
+        $balance = $totalCredit - $totalDebit;
+
+        $pdf = Pdf::loadView('pdf.wallet_statement', compact('user', 'transactions', 'balance', 'startDate', 'endDate'));
+        
+        return $pdf->download('Shreeji_Statement_' . now()->format('YmdHis') . '.pdf');
+    }
+
     public function withdraw(Request $request)
     {
         $request->validate([
@@ -46,23 +74,6 @@ class WalletController extends Controller
         ]);
 
         $user = Auth::user();
-
-        if ($user->role === 'PARTNER' || $user->role === 'EMPLOYEE') {
-            $user->load('employeeDetail');
-            if ($user->employeeDetail) {
-                if (!$user->bank_name) $user->bank_name = $user->employeeDetail->bank_name;
-                if (!$user->account_number) $user->account_number = $user->employeeDetail->account_number;
-                if (!$user->ifsc_code) $user->ifsc_code = $user->employeeDetail->ifsc_code;
-            }
-        }
-
-        // Check if user has bank details
-        if (!$user->bank_name || !$user->account_number || !$user->ifsc_code) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Please update your bank details before requesting a withdrawal.'
-            ], 400);
-        }
 
         // Calculate current balance
         $totalCredit = WalletTransaction::where('user_id', $user->id)->where('type', 'CREDIT')->where('status', 'COMPLETED')->sum('amount');
@@ -76,19 +87,75 @@ class WalletController extends Controller
             ], 400);
         }
 
-        // Create a PENDING debit transaction
-        $transaction = WalletTransaction::create([
-            'user_id' => $user->id,
-            'amount' => $request->amount,
-            'type' => 'DEBIT',
-            'description' => 'Withdrawal to Bank',
-            'status' => 'PENDING',
-        ]);
+        // --- RAZORPAY PAYOUT LINK INTEGRATION ---
+        try {
+            $key = config('services.razorpay.key');
+            $secret = config('services.razorpay.secret');
+            $payoutAccount = config('services.razorpay.payout_account');
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Withdrawal request submitted successfully! It will be processed soon.',
-            'data' => $transaction
-        ]);
+            if (!$key || !$secret) {
+                throw new \Exception("Razorpay credentials (Key/Secret) are missing in system configuration.");
+            }
+
+            $response = \Illuminate\Support\Facades\Http::withBasicAuth($key, $secret)
+                ->post('https://api.razorpay.com/v1/payout-links', [
+                    'account_number' => $payoutAccount, 
+                    'contact' => [
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'contact' => $user->phone,
+                        'type' => 'customer'
+                    ],
+                    'amount' => $request->amount * 100, // Amount in paise
+                    'currency' => 'INR',
+                    'purpose' => 'payout',
+                    'description' => "Withdrawal request for {$user->name}",
+                    'receipt' => 'rec_' . time(),
+                    'send_sms' => true,
+                    'send_email' => true
+                ]);
+
+            if (!$response->successful()) {
+                throw new \Exception("Razorpay Error: " . $response->body());
+            }
+
+            $payoutLink = $response->json();
+
+            // Create a PENDING debit transaction with payout link data
+            $transaction = WalletTransaction::create([
+                'user_id' => $user->id,
+                'amount' => $request->amount,
+                'type' => 'DEBIT',
+                'description' => 'Withdrawal via Payout Link',
+                'status' => 'PENDING',
+                'payout_link_id' => $payoutLink['id'],
+                'payout_link_url' => $payoutLink['short_url']
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Payout Gateway link generated! Please complete the transfer on Razorpay.',
+                'payout_url' => $payoutLink['short_url'],
+                'data' => $transaction
+            ]);
+
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Payout Link Creation Failed: " . $e->getMessage());
+            
+            // Fallback to manual request if API fails (optional, but keep it robust)
+            $transaction = WalletTransaction::create([
+                'user_id' => $user->id,
+                'amount' => $request->amount,
+                'type' => 'DEBIT',
+                'description' => 'Withdrawal (Manual Request)',
+                'status' => 'PENDING',
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Withdrawal request submitted manually (API busy). Administration will process it soon.',
+                'data' => $transaction
+            ]);
+        }
     }
 }

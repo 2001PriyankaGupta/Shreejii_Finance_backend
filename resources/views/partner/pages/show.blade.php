@@ -121,6 +121,40 @@
                             </div>
                         </div>
 
+                        <!-- Financial Performance -->
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                             <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center">
+                                <i class="fa-solid fa-wallet mr-2 text-slate-300"></i> Financial Performance
+                            </h4>
+                            <div class="p-5 bg-indigo-50 rounded-2xl border border-indigo-100 mb-6">
+                                <p class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Aggregate Commission</p>
+                                <p class="text-3xl font-black text-indigo-700">₹{{ number_format(\App\Models\WalletTransaction::where('user_id', $partner->id)->where('type', 'CREDIT')->sum('amount'), 2) }}</p>
+                            </div>
+                            
+                            <h5 class="text-[9px] font-black text-slate-400 uppercase mb-3">Recent Payouts</h5>
+                            <div class="space-y-3">
+                                @php 
+                                    $payouts = \App\Models\WalletTransaction::where('user_id', $partner->id)
+                                        ->where('type', 'CREDIT')
+                                        ->latest()
+                                        ->limit(3)
+                                        ->get();
+                                @endphp
+                                @foreach($payouts as $px)
+                                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-8 h-8 rounded-lg bg-white border border-slate-100 flex items-center justify-center text-xs text-emerald-500"><i class="fa-solid fa-plus"></i></div>
+                                            <div>
+                                                <p class="text-[10px] font-black uppercase text-slate-400">Lead #{{ $px->description }}</p>
+                                                <p class="text-[11px] font-bold text-slate-700">{{ $px->created_at->format('d M, Y') }}</p>
+                                            </div>
+                                        </div>
+                                        <p class="text-sm font-black text-indigo-600">₹{{ number_format($px->amount, 0) }}</p>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+
                         <!-- Compliance -->
                         <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                              <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center">

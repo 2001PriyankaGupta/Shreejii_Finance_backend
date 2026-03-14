@@ -172,4 +172,38 @@ class EmployeeController extends Controller
         $document->delete();
         return back()->with('success', 'Document deleted successfully.');
     }
+
+    public function approve(User $employee)
+    {
+        $employee->update(['status' => 'APPROVED']);
+        
+        \App\Models\Notification::create([
+            'user_id' => $employee->id,
+            'title' => 'Profile Verified',
+            'message' => 'Your employee profile has been approved and verified by the admin.',
+            'type' => 'SYSTEM'
+        ]);
+
+        return back()->with('success', 'Employee profile approved.');
+    }
+
+    public function reject(User $employee)
+    {
+        $employee->update(['status' => 'REJECTED']);
+
+        \App\Models\Notification::create([
+            'user_id' => $employee->id,
+            'title' => 'Profile Rejected',
+            'message' => 'Your employee profile has been rejected. Please check your documents and contact support.',
+            'type' => 'SYSTEM'
+        ]);
+
+        return back()->with('success', 'Employee profile rejected.');
+    }
+
+    public function pending(User $employee)
+    {
+        $employee->update(['status' => 'PENDING']);
+        return back()->with('success', 'Employee profile set to pending.');
+    }
 }

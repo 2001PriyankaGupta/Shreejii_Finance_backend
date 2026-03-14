@@ -25,16 +25,28 @@ class PartnerAuthController extends Controller
             return response()->json(['error' => 'Phone number is required'], 422);
         }
 
-        $user = User::where('phone', $request->phone)->first();
-        if (!$user) {
-            $user = User::create([
-                'phone' => $request->phone,
-                'name' => 'New Partner',
-                'role' => 'PARTNER',
-                'status' => 'PENDING',
-                'password' => Hash::make(Str::random(10)),
-            ]);
+        // --- NEW: CLEANUP INCOMPLETE ATTEMPTS ---
+        $existingUser = User::where('phone', $request->phone)->first();
+        if ($existingUser) {
+            // If already approved/active, don't let them register again
+            if ($existingUser->status !== 'SIGNUP_INCOMPLETE') {
+                return response()->json([
+                    'error' => 'Mobile number already registered. Please login to your account.'
+                ], 403);
+            }
+
+            // If incomplete, delete partial profile data and user to start fresh as requested
+            DB::table('employee_details')->where('user_id', $existingUser->id)->delete();
+            $existingUser->delete();
         }
+
+        $user = User::create([
+            'phone' => $request->phone,
+            'name' => 'New Partner',
+            'role' => 'PARTNER',
+            'status' => 'SIGNUP_INCOMPLETE', // Don't show in admin yet
+            'password' => Hash::make(Str::random(10)),
+        ]);
 
         $otpCode = rand(100000, 999999);
         
@@ -50,6 +62,20 @@ class PartnerAuthController extends Controller
             'phone' => $request->phone,
             'otp_simulated' => $otpCode
         ]);
+    }
+
+    /**
+     * Terminate and delete an incomplete signup (Called when user clicks BACK to start)
+     */
+    public function resetRegistration(Request $request)
+    {
+        $user = Auth::user();
+        if ($user && $user->role === 'PARTNER' && $user->status === 'SIGNUP_INCOMPLETE') {
+            DB::table('employee_details')->where('user_id', $user->id)->delete();
+            $user->delete();
+            return response()->json(['success' => true, 'message' => 'Registration sequence terminated. Entry deleted.']);
+        }
+        return response()->json(['error' => 'No active incomplete registration sequence found.'], 404);
     }
 
     public function createProfile(Request $request)
