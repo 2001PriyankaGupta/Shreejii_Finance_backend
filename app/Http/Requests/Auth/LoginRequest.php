@@ -49,6 +49,15 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        $user = Auth::user();
+        if (strtoupper($user->role) !== 'ADMIN') {
+            Auth::logout();
+            
+            throw ValidationException::withMessages([
+                'email' => 'You are not an admin',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 

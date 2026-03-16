@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'Shreeji Admin') }}</title>
+    <title>{{ config('app.name', 'Shreeja Admin') }}</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -125,7 +125,7 @@
         <!-- Sidebar -->
         <aside class="w-64 bg-[#0F172A] text-white flex-shrink-0 hidden md:flex flex-col transition-all duration-300 shadow-xl z-20">
             <div class="p-4 flex items-center justify-center h-16 border-b border-gray-700">
-                <h1 class="text-2xl font-bold tracking-wider">SHREEJI</h1>
+                <h1 class="text-2xl font-bold tracking-wider">SHREEJA</h1>
             </div>
             <nav class="flex-1 overflow-y-auto py-4">
                 <ul class="space-y-1 px-2">
@@ -207,7 +207,7 @@
                         <span class="absolute inset-y-0 left-0 flex items-center pl-3">
                             <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                         </span>
-                        <input type="text" class="w-full pl-10 pr-4 py-2 bg-gray-50 border-none rounded-full shadow-inner focus:outline-none focus:ring-2 focus:ring-[#0346cbff] transition-all" placeholder="Search for users, rides, etc...">
+                        <input type="text" class="w-full pl-10 pr-4 py-2 bg-gray-50 border-none rounded-full shadow-inner focus:outline-none focus:ring-2 focus:ring-[#0346cbff] transition-all" placeholder="Search...">
                     </div>
 
                     <!-- Right Side Actions -->
@@ -224,10 +224,77 @@
                             @endif
                         </a>
 
-                        <!-- Notification Signal Hub -->
-                        <button class="relative w-11 h-11 flex items-center justify-center rounded-xl bg-slate-50 text-slate-400 hover:text-[#0346cbff] hover:bg-blue-50 transition-all">
-                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                        </button>
+                        <!-- Notification Signal Hub (Dropdown) -->
+                        <div class="relative" x-data="{ open: false }">
+                            <button @click="open = !open" @click.away="open = false" class="relative w-11 h-11 flex items-center justify-center rounded-xl bg-slate-50 text-slate-400 hover:text-[#0346cbff] hover:bg-blue-50 transition-all group overflow-visible">
+                                <i class="fa-solid fa-bell text-lg transition-transform group-hover:rotate-12"></i>
+                                @php $unreadNotif = \App\Models\Notification::whereNull('user_id')->where('is_read', false)->count(); @endphp
+                                @if($unreadNotif > 0)
+                                    <div class="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center">
+                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#0346cbff] opacity-75"></span>
+                                        <span class="relative inline-flex rounded-full h-5 w-5 bg-[#0346cbff] text-[9px] text-white font-black items-center justify-center border-2 border-white shadow-sm">{{ $unreadNotif }}</span>
+                                    </div>
+                                @endif
+                            </button>
+
+                            <!-- Mini Dropdown Panel -->
+                            <div x-show="open" 
+                                 x-transition:enter="transition ease-out duration-200"
+                                 x-transition:enter-start="opacity-0 scale-95 translate-y-[-10px]"
+                                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                                 x-transition:leave="transition ease-in duration-75"
+                                 x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                                 x-transition:leave-end="opacity-0 scale-95 translate-y-[-10px]"
+                                 class="absolute right-0 mt-3 w-80 bg-white rounded-[2rem] shadow-[0_20px_50px_-15px_rgba(0,0,0,0.15)] border border-slate-100 overflow-hidden z-50 py-2"
+                                 style="display: none;">
+                                
+                                <!-- Header -->
+                                <div class="px-6 py-4 border-b border-slate-50 flex items-center justify-between">
+                                    <h4 class="text-sm font-black text-slate-800 uppercase tracking-wider">Notifications</h4>
+                                    <a href="{{ route('admin.notifications.index') }}" class="text-[10px] font-black text-[#0346cbff] hover:underline uppercase tracking-widest">View All</a>
+                                </div>
+
+                                <!-- Body -->
+                                <div class="max-h-[350px] overflow-y-auto custom-scrollbar">
+                                    @php $recentNotifs = \App\Models\Notification::whereNull('user_id')->latest()->take(5)->get(); @endphp
+                                    @forelse($recentNotifs as $notif)
+                                        <div class="px-6 py-4 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 flex gap-4 items-start cursor-pointer">
+                                            <div class="w-10 h-10 rounded-xl bg-slate-50 flex-shrink-0 flex items-center justify-center text-[#0346cbff]">
+                                                @switch($notif->type)
+                                                    @case('LOAN') <i class="fa-solid fa-file-invoice-dollar text-xs"></i> @break
+                                                    @case('PARTNER') <i class="fa-solid fa-handshake text-xs"></i> @break
+                                                    @case('USER') <i class="fa-solid fa-user-plus text-xs"></i> @break
+                                                    @default <i class="fa-solid fa-bell text-xs"></i>
+                                                @endswitch
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-xs font-bold text-slate-800 truncate mb-0.5">{{ $notif->title }}</p>
+                                                <p class="text-[10px] text-slate-400 font-medium line-clamp-2 leading-relaxed">{{ $notif->message }}</p>
+                                                <p class="text-[8px] text-[#0346cbff] font-black mt-2 uppercase tracking-widest">{{ $notif->created_at->diffForHumans() }}</p>
+                                            </div>
+                                            @if(!$notif->is_read)
+                                                <div class="w-1.5 h-1.5 rounded-full bg-[#0346cbff] mt-2"></div>
+                                            @endif
+                                        </div>
+                                    @empty
+                                        <div class="py-12 px-6 text-center opacity-40">
+                                            <i class="fa-solid fa-bell-slash text-3xl mb-3"></i>
+                                            <p class="text-xs font-bold uppercase tracking-[2px]">No new notifications</p>
+                                        </div>
+                                    @endforelse
+                                </div>
+
+                                <!-- Footer -->
+                                <div class="px-6 py-4 bg-slate-50/50 border-t border-slate-50 text-center">
+                                    <form action="{{ route('admin.notifications.index') }}" method="GET">
+                                        <button class="text-[10px] font-black text-slate-500 hover:text-[#0346cbff] transition-colors uppercase tracking-[2px] flex items-center justify-center w-full gap-2">
+                                            <i class="fa-solid fa-check-double text-[8px]"></i>
+                                            Mark all as read
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
                         <a href="{{ route('profile.edit') }}" class="flex items-center space-x-3 cursor-pointer group">
                              <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-[#0346cbff] to-cyan-400 p-0.5 shadow-md overflow-hidden">
                                 @if(Auth::user()->avatar_url)

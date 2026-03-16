@@ -145,6 +145,14 @@ class PartnerAuthController extends Controller
             ], $docPaths)
         );
 
+        // Notify Admin of new partner signup
+        \App\Models\Notification::create([
+            'user_id' => null, // Admin
+            'title' => 'New Partner Signup',
+            'message' => "Partner {$user->name} ({$request->business_name}) has completed registration and is pending approval.",
+            'type' => 'PARTNER'
+        ]);
+
         return response()->json([
             'message' => 'Partner profile created successfully. Under review.',
             'profile' => $user

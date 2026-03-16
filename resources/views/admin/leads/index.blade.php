@@ -255,14 +255,12 @@
                             <i class="fa-solid fa-ellipsis-vertical text-lg"></i>
                         </button>
                         <div class="dropdown-menu" id="exportDropdown">
-                            <div class="dropdown-item-custom" onclick="triggerDTButton('copy')">
-                                <i class="fa-solid fa-copy w-5 text-indigo-500"></i> Copy Pipeline
-                            </div>
+                            
                             <div class="dropdown-item-custom" onclick="triggerDTButton('excel')">
                                 <i class="fa-solid fa-file-excel w-5 text-emerald-500"></i> Export Excel
                             </div>
-                            <div class="dropdown-item-custom" onclick="triggerDTButton('pdf')">
-                                <i class="fa-solid fa-file-pdf w-5 text-rose-500"></i> Export PDF
+                            <div class="dropdown-item-custom" onclick="window.location.href='{{ route('admin.leads.download-pdf', request()->all()) }}'">
+                                <i class="fa-solid fa-file-pdf w-5 text-rose-500"></i> Download 
                             </div>
                             <div class="dropdown-item-custom" onclick="triggerDTButton('print')">
                                 <i class="fa-solid fa-print w-5 text-slate-500"></i> Print View
@@ -340,6 +338,9 @@
                                         <a href="{{ route('admin.leads.show', $lead) }}" class="action-icon-btn view-btn shadow-sm" title="View Detail">
                                             <i class="fa-solid fa-arrow-right-long text-xs"></i>
                                         </a>
+                                        <!-- <a href="{{ route('admin.leads.edit', $lead) }}" class="action-icon-btn bg-indigo-50 text-indigo-500 hover:bg-indigo-500 hover:text-white shadow-sm" title="Edit Lead">
+                                            <i class="fa-solid fa-pen-to-square text-xs"></i>
+                                        </a> -->
                                         <form action="{{ route('admin.leads.destroy', $lead) }}" method="POST" onsubmit="return confirm('Purge this lead node?')">
                                             @csrf
                                             @method('DELETE')
@@ -365,9 +366,7 @@
 
     <script>
         function triggerDTButton(action) {
-            if(action === 'copy') $('.buttons-copy').click();
             if(action === 'excel') $('.buttons-excel').click();
-            if(action === 'pdf') $('.buttons-pdf').click();
             if(action === 'print') $('.buttons-print').click();
             $('#exportDropdown').removeClass('show');
         }
@@ -376,7 +375,7 @@
             var table = $('#leadsTable').DataTable({
                 dom: 'Bfrtip',
                 buttons: [
-                    'copy', 'excel', 'pdf', 'print'
+                     'excel', 'print'
                 ],
                 "pageLength": 10,
                 "ordering": true,

@@ -64,7 +64,7 @@ class WalletController extends Controller
 
         $pdf = Pdf::loadView('pdf.wallet_statement', compact('user', 'transactions', 'balance', 'startDate', 'endDate'));
         
-        return $pdf->download('Shreeji_Statement_' . now()->format('YmdHis') . '.pdf');
+        return $pdf->download('Shreeja_Statement_' . now()->format('YmdHis') . '.pdf');
     }
 
     public function withdraw(Request $request)

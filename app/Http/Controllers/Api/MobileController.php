@@ -214,6 +214,14 @@ class MobileController extends Controller
             'expires_at' => now()->addMinutes(10),
         ]);
 
+        // Notify Admin
+        \App\Models\Notification::create([
+            'user_id' => null, // Admin
+            'title' => 'New Customer Registration',
+            'message' => "A new customer ({$request->name}) has registered with phone number: {$request->phone}.",
+            'type' => 'USER'
+        ]);
+
         return response()->json([
             'message' => 'Registration successful. OTP sent.',
             'phone' => $request->phone,

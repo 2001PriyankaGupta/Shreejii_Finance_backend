@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Welcome to Shreeji</title>
+    <title>Welcome to Shreeja</title>
     <style>
         body {
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -95,7 +95,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>SHREEJI</h1>
+            <h1>SHREEJA</h1>
         </div>
         <div class="content">
             <h2>Welcome to the team, {{ $user->name }}!</h2>
@@ -116,12 +116,12 @@
                 </div>
             </div>
 
-            <p>You can now log in to the <strong>Shreeji Mobile App</strong> using your phone number and the OTP verification process.</p>
+            <p>You can now log in to the <strong>Shreeja Mobile App</strong> using your phone number and the OTP verification process.</p>
             
             
         </div>
         <div class="footer">
-            <p>&copy; {{ date('Y') }} Shreeji. All rights reserved.</p>
+            <p>&copy; {{ date('Y') }} Shreeja. All rights reserved.</p>
             <p>If you didn't expect this email, please ignore it.</p>
         </div>
     </div>

@@ -5,9 +5,22 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class PartnerController extends Controller
 {
+    public function downloadPdf()
+    {
+        $partners = User::where('role', 'PARTNER')
+            ->where('status', '!=', 'SIGNUP_INCOMPLETE')
+            ->with('employeeDetail')
+            ->latest()
+            ->get();
+            
+        $pdf = Pdf::loadView('pdf.partners', compact('partners'));
+        return $pdf->download('Shreeja_Partners_' . now()->format('YmdHis') . '.pdf');
+    }
+
     public function index()
     {
         $partners = User::where('role', 'PARTNER')

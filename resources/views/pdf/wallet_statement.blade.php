@@ -2,13 +2,13 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Shreejii Finance - Wallet Statement</title>
+    <title>Shreeja Finance - Wallet Statement</title>
     <style>
         @page { margin: 100px 25px; }
         header { position: fixed; top: -60px; left: 0px; right: 0px; height: 50px; border-bottom: 2px solid #0346cb; }
         footer { position: fixed; bottom: -60px; left: 0px; right: 0px; height: 50px; font-size: 10px; color: #94a3b8; text-align: center; }
         
-        body { font-family: 'Helvetica', sans-serif; color: #1e293b; line-height: 1.4; margin: 0; padding: 0px; }
+        body { font-family: 'DejaVu Sans', sans-serif; color: #1e293b; line-height: 1.4; margin: 0; padding: 0px; }
         .company-name { font-size: 24px; font-weight: bold; color: #0346cb; text-transform: uppercase; }
         .document-title { font-size: 14px; font-weight: bold; color: #475569; margin-top: 5px; }
         
@@ -36,12 +36,12 @@
 </head>
 <body>
     <header>
-        <span class="company-name">Shreejii Finance</span>
+        <span class="company-name">Shreeja Finance</span>
         <span style="float: right;" class="document-title">DIGITAL LEDGER STATEMENT</span>
     </header>
 
     <footer>
-        Shreejii Finance Terminal Copy - Generated on {{ now()->format('d M, Y h:i A') }} - Page 1 of 1
+        Shreeja Finance Terminal Copy - Generated on {{ now()->format('d M, Y h:i A') }} - Page 1 of 1
     </footer>
 
     <main>
@@ -72,7 +72,7 @@
 
         <div class="balance-container">
             <div class="balance-label">Net Available Liquidity</div>
-            <div class="balance-amount"><span class="rupee">₹</span> {{ number_format($balance, 2) }}</div>
+            <div class="balance-amount"><span class="rupee">&#8377;</span> {{ number_format($balance, 2) }}</div>
         </div>
 
         <table class="table">
@@ -97,7 +97,7 @@
                             {{ $tx->type }}
                         </td>
                         <td style="font-weight: bold;">
-                            {{ $tx->type === 'CREDIT' ? '+' : '-' }} <span class="rupee">₹</span> {{ number_format($tx->amount, 2) }}
+                            {{ $tx->type === 'CREDIT' ? '+' : '-' }} <span class="rupee">&#8377;</span> {{ number_format($tx->amount, 2) }}
                         </td>
                         <td>
                             <span class="status-badge">{{ $tx->status }}</span>
@@ -114,7 +114,7 @@
         </table>
 
         <div style="margin-top: 40px; border-top: 1px dashed #cbd5e1; padding-top: 20px; font-size: 9px; color: #64748b;">
-            <strong>Declaration:</strong> This is an electronically generated statement for Shreejii Finance. Any discrepancies must be reported to the administrator within 48 hours of transaction sync. 
+            <strong>Declaration:</strong> This is an electronically generated statement for Shreeja Finance. Any discrepancies must be reported to the administrator within 48 hours of transaction sync. 
         </div>
     </main>
 </body>

@@ -15,12 +15,29 @@
                     <div class="space-y-6">
                         @forelse($notifications as $notif)
                             <div class="p-8 bg-slate-50 border border-slate-100 rounded-[2.5rem] flex items-center gap-8 hover:bg-white hover:border-[#0346cbff] transition-all group shadow-sm hover:shadow-xl">
-                                <div class="w-16 h-16 rounded-[2rem] bg-white border border-slate-200 flex items-center justify-center text-slate-400 group-hover:bg-[#0346cbff] group-hover:text-white transition-all shadow-inner">
-                                    <i class="fa-solid {{ $notif->type == 'LOAN' ? 'fa-file-invoice-dollar' : 'fa-satellite-dish' }} text-2xl"></i>
+                                <div class="w-16 h-16 rounded-[2rem] bg-white border border-slate-200 flex items-center justify-center text-slate-400 group-hover:bg-[#0346cbff] group-hover:text-white transition-all shadow-inner text-2xl">
+                                    @switch($notif->type)
+                                        @case('LOAN') <i class="fa-solid fa-file-invoice-dollar"></i> @break
+                                        @case('PARTNER') <i class="fa-solid fa-handshake"></i> @break
+                                        @case('USER') <i class="fa-solid fa-user-plus"></i> @break
+                                        @case('INQUIRY') <i class="fa-solid fa-circle-question"></i> @break
+                                        @case('ELITE') <i class="fa-solid fa-bolt"></i> @break
+                                        @default <i class="fa-solid fa-satellite-dish"></i>
+                                    @endswitch
                                 </div>
                                 <div class="flex-1">
                                     <div class="flex items-center gap-3 mb-2">
-                                        <span class="px-3 py-1 bg-{{ $notif->type == 'LOAN' ? 'blue' : 'amber' }}-100 text-{{ $notif->type == 'LOAN' ? 'blue' : 'amber' }}-600 rounded-md text-[8px] font-black uppercase tracking-widest">{{ $notif->type }} EVENT</span>
+                                        @php
+                                            $typeColor = match($notif->type) {
+                                                'LOAN' => 'blue',
+                                                'PARTNER' => 'emerald',
+                                                'USER' => 'indigo',
+                                                'INQUIRY' => 'rose',
+                                                'ELITE' => 'amber',
+                                                default => 'slate',
+                                            };
+                                        @endphp
+                                        <span class="px-3 py-1 bg-{{ $typeColor }}-100 text-{{ $typeColor }}-600 rounded-md text-[8px] font-black uppercase tracking-widest">{{ $notif->type }} EVENT</span>
                                         <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ $notif->created_at->format('d M • H:i') }}</p>
                                     </div>
                                     <h4 class="text-lg font-black text-slate-900 mb-1 group-hover:text-[#0346cbff] transition-colors uppercase tracking-tight">{{ $notif->title }}</h4>

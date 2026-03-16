@@ -5,9 +5,23 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\WalletTransaction;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class WalletController extends Controller
 {
+    public function downloadPdf(Request $request)
+    {
+        $query = WalletTransaction::with('user.employeeDetail')->where('type', 'DEBIT');
+
+        if ($request->has('id')) {
+            $query->where('id', $request->id);
+        }
+
+        $transactions = $query->latest()->get();
+        $pdf = Pdf::loadView('pdf.wallet', compact('transactions'));
+        return $pdf->download('Shreeja_Payouts_' . now()->format('YmdHis') . '.pdf');
+    }
+
     public function index()
     {
         $transactions = WalletTransaction::with('user.employeeDetail')

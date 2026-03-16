@@ -5,9 +5,17 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class CustomerController extends Controller
 {
+    public function downloadPdf()
+    {
+        $customers = User::where('role', 'CUSTOMER')->latest()->get();
+        $pdf = Pdf::loadView('pdf.customers', compact('customers'));
+        return $pdf->download('Shreeja_Customers_' . now()->format('YmdHis') . '.pdf');
+    }
+
     public function index()
     {
         $customers = User::where('role', 'CUSTOMER')->latest()->get();
@@ -54,6 +62,8 @@ class CustomerController extends Controller
     public function getNotifications()
     {
         $notifications = \App\Models\Notification::latest()->get();
+        // Mark admin notifications as read
+        \App\Models\Notification::whereNull('user_id')->where('is_read', false)->update(['is_read' => true]);
         return view('admin.notifications.index', compact('notifications'));
     }
 }

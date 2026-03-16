@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\MessageController;
 use App\Http\Controllers\Admin\WalletController;
 
 Route::resource('employees', EmployeeController::class);
+Route::get('employees-download-pdf', [EmployeeController::class, 'downloadPdf'])->name('employees.download-pdf');
 Route::post('employees/{employee}/approve', [EmployeeController::class, 'approve'])->name('employees.approve');
 Route::post('employees/{employee}/reject', [EmployeeController::class, 'reject'])->name('employees.reject');
 Route::post('employees/{employee}/pending', [EmployeeController::class, 'pending'])->name('employees.pending');
@@ -19,6 +20,7 @@ Route::delete('employee-documents/{document}', [EmployeeController::class, 'dele
 
 // Leads Management
 Route::get('leads/disbursements', [LeadController::class, 'disbursements'])->name('leads.disbursements');
+Route::get('leads-download-pdf', [LeadController::class, 'downloadPdf'])->name('leads.download-pdf');
 Route::get('leads', [LeadController::class, 'index'])->name('leads.index');
 Route::get('leads/{lead}', [LeadController::class, 'show'])->name('leads.show');
 Route::get('leads/{lead}/edit', [LeadController::class, 'edit'])->name('leads.edit');
@@ -27,6 +29,7 @@ Route::patch('leads/{lead}/status', [LeadController::class, 'updateStatus'])->na
 Route::delete('leads/{lead}', [LeadController::class, 'destroy'])->name('leads.destroy');
 
 // Partner Management
+Route::get('partners-download-pdf', [PartnerController::class, 'downloadPdf'])->name('partners.download-pdf');
 Route::get('partners', [PartnerController::class, 'index'])->name('partners.index');
 Route::get('partners/{partner}', [PartnerController::class, 'show'])->name('partners.show');
 Route::post('partners/{partner}/approve', [PartnerController::class, 'approve'])->name('partners.approve');
@@ -35,6 +38,7 @@ Route::post('partners/{partner}/pending', [PartnerController::class, 'pending'])
 Route::delete('partners/{partner}', [PartnerController::class, 'destroy'])->name('partners.destroy');
 
 // Customer Management
+Route::get('customers-download-pdf', [CustomerController::class, 'downloadPdf'])->name('customers.download-pdf');
 Route::get('customers', [CustomerController::class, 'index'])->name('customers.index');
 Route::get('customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
 Route::patch('loans/{loan}/status', [CustomerController::class, 'updateLoanStatus'])->name('loans.updateStatus');
@@ -73,5 +77,6 @@ Route::post('elite-protocol/{id}/status', function($id, \Illuminate\Http\Request
 })->name('elite.update-status');
 
 // Wallet Management
+Route::get('wallet-download-pdf', [WalletController::class, 'downloadPdf'])->name('wallet.download-pdf');
 Route::get('wallet', [WalletController::class, 'index'])->name('wallet.index');
 Route::post('wallet/{id}/status', [WalletController::class, 'updateStatus'])->name('wallet.updateStatus');

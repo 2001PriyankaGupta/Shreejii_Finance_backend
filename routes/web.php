@@ -15,7 +15,7 @@ Route::get('/dashboard', function () {
         'tasks' => \App\Models\Task::count(),
     ];
     return view('dashboard', compact('stats'));
-})->middleware(['auth', 'verified'])->name('dashboard');
+})->middleware(['auth', 'verified', 'prevent-back-history'])->name('dashboard');
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

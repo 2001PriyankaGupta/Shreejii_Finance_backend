@@ -11,9 +11,17 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\EmployeeWelcomeMail;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class EmployeeController extends Controller
 {
+    public function downloadPdf()
+    {
+        $employees = User::where('role', 'EMPLOYEE')->with('employeeDetail')->latest()->get();
+        $pdf = Pdf::loadView('pdf.employees', compact('employees'));
+        return $pdf->download('Shreeja_Employees_' . now()->format('YmdHis') . '.pdf');
+    }
+
     public function index()
     {
         $employees = User::where('role', 'EMPLOYEE')->with('employeeDetail')->latest()->get();

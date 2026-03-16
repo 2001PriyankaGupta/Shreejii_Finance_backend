@@ -29,6 +29,14 @@ class InquiryController extends Controller
 
         $inquiry = Inquiry::create($request->all());
 
+        // Notify Admin
+        \App\Models\Notification::create([
+            'user_id' => null, // Admin
+            'title' => 'New Support Inquiry',
+            'message' => "Received a new {$request->inquiry_type} inquiry from {$request->first_name} {$request->last_name}.",
+            'type' => 'INQUIRY'
+        ]);
+
         return response()->json([
             'status' => 'success',
             'message' => 'Inquiry submitted successfully',
